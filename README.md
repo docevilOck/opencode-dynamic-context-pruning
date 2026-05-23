@@ -1,5 +1,7 @@
 # Dynamic Context Pruning Plugin
 
+[中文文档](README.zh-CN.md)
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/dansmolsky)
 [![npm version](https://img.shields.io/npm/v/@tarquinen/opencode-dcp.svg)](https://www.npmjs.com/package/@tarquinen/opencode-dcp)
 
@@ -16,6 +18,11 @@ opencode plugin @tarquinen/opencode-dcp@latest --global
 ```
 
 This installs the package and adds it to your global OpenCode config.
+
+Available languages:
+
+- [English](README.md)
+- [简体中文](README.zh-CN.md)
 
 ## How It Works
 
@@ -49,6 +56,15 @@ DCP uses its own config file, searched in order:
 3. Project: `.opencode/dcp.jsonc` (or `dcp.json`) in your project's `.opencode` directory
 
 Each level overrides the previous, so project settings take priority over global. Restart OpenCode after making config changes.
+
+### Configuration Template
+
+The full `Default Configuration` block below can be used as a complete template.
+
+Typical split:
+
+- `opencode.json` registers the plugin path.
+- `dcp.jsonc` configures DCP behavior, including backend compression.
 
 > [!NOTE]
 > If you use models with smaller context windows, such as GitHub Copilot models or local models, lower `compress.minContextLimit` and `compress.maxContextLimit` in your configuration to match the available context.
@@ -154,7 +170,7 @@ Each level overrides the previous, so project settings take priority over global
         // Optional backend model mode for compression summaries.
         // When enabled, the primary model only selects message/range IDs.
         // DCP creates an isolated backend session and calls model to generate summaries.
-        // model must use providerID/modelID format.
+        // To enable it, set enabled=true and provide model in providerID/modelID format.
         "backend": {
             "enabled": false,
             "mode": "session-prompt",
@@ -208,6 +224,8 @@ In backend mode:
 - DCP creates an isolated backend session and sends the selected conversation content to the configured model.
 - Backend mode adds one extra model call per compression execution.
 - If backend generation fails, the compression fails instead of falling back to a primary-model summary.
+- The backend model must also exist in that machine's normal OpenCode provider/model configuration.
+- To enable it from the full template above, set `compress.backend.enabled` to `true` and fill in `compress.backend.model`.
 
 ### Commands
 
