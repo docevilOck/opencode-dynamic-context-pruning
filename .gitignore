@@ -27,6 +27,7 @@ Thumbs.db
 
 # OpenCode
 .opencode/
+.worktrees/
 
 # Python cache
 __pycache__/
