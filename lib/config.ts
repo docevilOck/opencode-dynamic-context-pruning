@@ -7,6 +7,13 @@ import type { PluginInput } from "@opencode-ai/plugin"
 type Permission = "ask" | "allow" | "deny"
 type CompressMode = "range" | "message"
 
+export interface CompressBackendConfig {
+    enabled: boolean
+    mode: "session-prompt"
+    timeoutMs: number
+    model?: string
+}
+
 export interface Deduplication {
     enabled: boolean
     protectedTools: string[]
@@ -27,6 +34,7 @@ export interface CompressConfig {
     protectedTools: string[]
     protectTags: boolean
     protectUserMessages: boolean
+    backend: CompressBackendConfig
 }
 
 export interface Commands {
@@ -73,7 +81,9 @@ export interface PluginConfig {
     }
 }
 
-type CompressOverride = Partial<CompressConfig>
+type CompressOverride = Omit<Partial<CompressConfig>, "backend"> & {
+    backend?: Partial<CompressBackendConfig>
+}
 
 const DEFAULT_PROTECTED_TOOLS = [
     "task",
@@ -126,6 +136,11 @@ export const VALID_CONFIG_KEYS = new Set([
     "compress.protectedTools",
     "compress.protectTags",
     "compress.protectUserMessages",
+    "compress.backend",
+    "compress.backend.enabled",
+    "compress.backend.mode",
+    "compress.backend.timeoutMs",
+    "compress.backend.model",
     "strategies",
     "strategies.deduplication",
     "strategies.deduplication.enabled",
@@ -443,6 +458,66 @@ export function validateConfigTypes(config: Record<string, any>): ValidationErro
                 })
             }
 
+            const backend = compress.backend
+            if (backend !== undefined) {
+                if (typeof backend !== "object" || backend === null || Array.isArray(backend)) {
+                    errors.push({
+                        key: "compress.backend",
+                        expected: "object",
+                        actual: typeof backend,
+                    })
+                } else {
+                    if (backend.enabled !== undefined && typeof backend.enabled !== "boolean") {
+                        errors.push({
+                            key: "compress.backend.enabled",
+                            expected: "boolean",
+                            actual: typeof backend.enabled,
+                        })
+                    }
+
+                    if (backend.mode !== undefined && backend.mode !== "session-prompt") {
+                        errors.push({
+                            key: "compress.backend.mode",
+                            expected: '"session-prompt"',
+                            actual: JSON.stringify(backend.mode),
+                        })
+                    }
+
+                    if (
+                        backend.timeoutMs !== undefined &&
+                        (!Number.isInteger(backend.timeoutMs) || backend.timeoutMs < 1)
+                    ) {
+                        errors.push({
+                            key: "compress.backend.timeoutMs",
+                            expected: "positive integer",
+                            actual: JSON.stringify(backend.timeoutMs),
+                        })
+                    }
+
+                    if (backend.model !== undefined && typeof backend.model !== "string") {
+                        errors.push({
+                            key: "compress.backend.model",
+                            expected: "providerID/modelID string",
+                            actual: typeof backend.model,
+                        })
+                    } else if (backend.enabled === true) {
+                        const model = backend.model
+                        const separatorIndex = typeof model === "string" ? model.indexOf("/") : -1
+                        if (
+                            typeof model !== "string" ||
+                            separatorIndex <= 0 ||
+                            separatorIndex === model.length - 1
+                        ) {
+                            errors.push({
+                                key: "compress.backend.model",
+                                expected: "providerID/modelID",
+                                actual: model === undefined ? "undefined" : JSON.stringify(model),
+                            })
+                        }
+                    }
+                }
+            }
+
             if (
                 typeof compress.iterationNudgeThreshold === "number" &&
                 compress.iterationNudgeThreshold < 1
@@ -689,6 +764,11 @@ const defaultConfig: PluginConfig = {
         protectedTools: [...COMPRESS_DEFAULT_PROTECTED_TOOLS],
         protectTags: false,
         protectUserMessages: false,
+        backend: {
+            enabled: false,
+            mode: "session-prompt",
+            timeoutMs: 60000,
+        },
     },
     strategies: {
         deduplication: {
@@ -855,6 +935,12 @@ function mergeCompress(
         protectedTools: [...new Set([...base.protectedTools, ...(override.protectedTools ?? [])])],
         protectTags: override.protectTags ?? base.protectTags,
         protectUserMessages: override.protectUserMessages ?? base.protectUserMessages,
+        backend: {
+            enabled: override.backend?.enabled ?? base.backend.enabled,
+            mode: override.backend?.mode ?? base.backend.mode,
+            timeoutMs: override.backend?.timeoutMs ?? base.backend.timeoutMs,
+            model: override.backend?.model ?? base.backend.model,
+        },
     }
 }
 
@@ -915,6 +1001,7 @@ function deepCloneConfig(config: PluginConfig): PluginConfig {
             modelMaxLimits: { ...config.compress.modelMaxLimits },
             modelMinLimits: { ...config.compress.modelMinLimits },
             protectedTools: [...config.compress.protectedTools],
+            backend: { ...config.compress.backend },
         },
         strategies: {
             deduplication: {
