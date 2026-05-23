@@ -6,12 +6,12 @@ import {
     parseBackendModelRef,
 } from "./backend-types"
 
-function responseData(response: any): any {
+function getResponseData(response: any): any {
     return response?.data ?? response
 }
 
 function extractSessionId(response: any): string {
-    const data = responseData(response)
+    const data = getResponseData(response)
     const id = data?.id
     if (typeof id !== "string" || id.trim().length === 0) {
         throw new Error("compress backend session creation did not return a session id")
@@ -20,7 +20,7 @@ function extractSessionId(response: any): string {
 }
 
 function extractText(response: any): string {
-    const data = responseData(response)
+    const data = getResponseData(response)
     const parts = Array.isArray(data?.parts) ? data.parts : []
     const text = parts
         .filter((part: any) => part?.type === "text" && typeof part.text === "string")
@@ -35,7 +35,7 @@ function extractText(response: any): string {
     return text
 }
 
-function parseJsonResponse(text: string): any {
+function parseBackendJson(text: string): any {
     try {
         return JSON.parse(text)
     } catch {
@@ -44,7 +44,7 @@ function parseJsonResponse(text: string): any {
 }
 
 function parseSummary(text: string): BackendSummaryResult {
-    const parsed = parseJsonResponse(text)
+    const parsed = parseBackendJson(text)
     if (typeof parsed?.summary !== "string" || parsed.summary.trim().length === 0) {
         throw new Error("compress backend response must include a non-empty summary")
     }
@@ -55,7 +55,7 @@ function parseSummary(text: string): BackendSummaryResult {
 }
 
 function parseMessageSummaries(text: string): BackendMessageSummaryResult {
-    const parsed = parseJsonResponse(text)
+    const parsed = parseBackendJson(text)
     if (!Array.isArray(parsed?.summaries)) {
         throw new Error("compress backend response must include summaries")
     }

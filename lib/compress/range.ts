@@ -1,6 +1,7 @@
 import { tool } from "@opencode-ai/plugin"
 import type { ToolContext } from "./types"
 import { countTokens } from "../token-utils"
+import { assertBackendGeneratedInput, normalizeRangeToolArgs } from "./backend-input"
 import { RANGE_BACKEND_FORMAT_EXTENSION, RANGE_FORMAT_EXTENSION } from "../prompts/extensions/tool"
 import { generateCompressionSummary } from "./backend"
 import { selectedMessagesForBackend } from "./backend-selection"
@@ -26,7 +27,7 @@ import {
     applyCompressionState,
     wrapCompressedSummary,
 } from "./state"
-import type { CompressRangeToolArgs } from "./types"
+import type { CompressRangeBackendToolArgs, CompressRangeToolArgs } from "./types"
 
 function buildSchema(backendEnabled: boolean) {
     if (backendEnabled) {
@@ -89,25 +90,14 @@ export function createCompressRangeTool(ctx: ToolContext): ReturnType<typeof too
         description: runtimePrompts.compressRange + formatExtension,
         args: buildSchema(backendEnabled),
         async execute(args, toolCtx) {
-            if (ctx.config.compress.backend?.enabled ?? false) {
-                const hasSummary =
-                    Array.isArray((args as any).content) &&
-                    (args as any).content.some((item: any) => "summary" in item)
-
-                if (hasSummary) {
-                    throw new Error("compress backend mode does not accept summary input")
-                }
-            }
-
-            const backendEnabled = ctx.config.compress.backend?.enabled ?? false
-            const input = args as CompressRangeToolArgs
             if (backendEnabled) {
-                const backendInput = input as any
-                input.content = backendInput.content.map((entry: any) => ({
-                    ...entry,
-                    summary: "__backend_summary__",
-                }))
+                assertBackendGeneratedInput(args)
             }
+
+            const input = normalizeRangeToolArgs(
+                args as CompressRangeToolArgs | CompressRangeBackendToolArgs,
+                backendEnabled,
+            )
             validateArgs(input)
             const callId =
                 typeof (toolCtx as unknown as { callID?: unknown }).callID === "string"

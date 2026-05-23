@@ -1,6 +1,7 @@
 import { tool } from "@opencode-ai/plugin"
 import type { ToolContext } from "./types"
 import { countTokens } from "../token-utils"
+import { assertBackendGeneratedInput, normalizeMessageToolArgs } from "./backend-input"
 import {
     MESSAGE_BACKEND_FORMAT_EXTENSION,
     MESSAGE_FORMAT_EXTENSION,
@@ -16,7 +17,7 @@ import {
     applyCompressionState,
     wrapCompressedSummary,
 } from "./state"
-import type { CompressMessageToolArgs } from "./types"
+import type { CompressMessageBackendToolArgs, CompressMessageToolArgs } from "./types"
 
 function requireMatchingBackendSummaries(
     requestedIds: string[],
@@ -98,26 +99,14 @@ export function createCompressMessageTool(ctx: ToolContext): ReturnType<typeof t
         description: runtimePrompts.compressMessage + formatExtension,
         args: buildSchema(backendEnabled),
         async execute(args, toolCtx) {
-            if (ctx.config.compress.backend?.enabled ?? false) {
-                const hasSummary =
-                    Array.isArray((args as any).content) &&
-                    (args as any).content.some((item: any) => "summary" in item)
-
-                if (hasSummary) {
-                    throw new Error("compress backend mode does not accept summary input")
-                }
-            }
-
-            const backendEnabled = ctx.config.compress.backend?.enabled ?? false
-            const input = args as CompressMessageToolArgs
             if (backendEnabled) {
-                const backendInput = input as any
-                input.content = backendInput.content.map((entry: any) => ({
-                    ...entry,
-                    topic: "__backend_topic__",
-                    summary: "__backend_summary__",
-                }))
+                assertBackendGeneratedInput(args)
             }
+
+            const input = normalizeMessageToolArgs(
+                args as CompressMessageToolArgs | CompressMessageBackendToolArgs,
+                backendEnabled,
+            )
             validateArgs(input)
             const callId =
                 typeof (toolCtx as unknown as { callID?: unknown }).callID === "string"

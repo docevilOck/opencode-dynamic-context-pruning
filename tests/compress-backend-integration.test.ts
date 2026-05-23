@@ -256,3 +256,88 @@ test("message mode rejects mismatched backend message ids", async () => {
         /backend summaries must match requested message ids/,
     )
 })
+
+test("range mode rejects manual summaries when backend is enabled", async () => {
+    const sessionID = `ses_range_backend_manual_summary_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const state = createSessionState()
+
+    const tool = createCompressRangeTool({
+        client: buildClient(rawMessages, '{"summary":"backend generated range summary"}'),
+        state,
+        logger: new Logger(false),
+        config: buildConfig("range"),
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        tool.execute(
+            {
+                topic: "Backend range",
+                content: [
+                    {
+                        startId: "m0001",
+                        endId: "m0002",
+                        summary: "manual summary should be rejected",
+                    },
+                ],
+            } as any,
+            {
+                ask: async () => {},
+                metadata: () => {},
+                sessionID,
+                messageID: "msg-compress-backend-range-manual-summary",
+            },
+        ),
+        /compress backend mode does not accept summary input/,
+    )
+})
+
+test("message mode rejects manual summaries when backend is enabled", async () => {
+    const sessionID = `ses_message_backend_manual_summary_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const state = createSessionState()
+
+    const tool = createCompressMessageTool({
+        client: buildClient(
+            rawMessages,
+            '{"summaries":[{"messageId":"m0001","topic":"Backend user","summary":"backend user summary"}]}',
+        ),
+        state,
+        logger: new Logger(false),
+        config: buildConfig("message"),
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        tool.execute(
+            {
+                topic: "Backend messages",
+                content: [
+                    {
+                        messageId: "m0001",
+                        topic: "manual topic",
+                        summary: "manual summary should be rejected",
+                    },
+                ],
+            } as any,
+            {
+                ask: async () => {},
+                metadata: () => {},
+                sessionID,
+                messageID: "msg-compress-backend-message-manual-summary",
+            },
+        ),
+        /compress backend mode does not accept summary input/,
+    )
+})

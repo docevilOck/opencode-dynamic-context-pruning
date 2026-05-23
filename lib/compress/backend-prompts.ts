@@ -1,5 +1,10 @@
 import type { BackendMessageRequest, BackendRangeRequest } from "./backend-types"
 
+const RANGE_RESPONSE_SHAPE =
+    '{"summary":"concise technical summary preserving decisions, constraints, file paths, commands, errors, and next steps"}'
+const MESSAGE_RESPONSE_SHAPE =
+    '{"summaries":[{"messageId":"m0001","topic":"short topic","summary":"concise technical summary preserving decisions, constraints, file paths, commands, errors, and next steps"}]}'
+
 function formatMessages(messages: Array<{ id: string; role: string; text: string }>): string {
     if (messages.length === 0) {
         return "(No message text was available.)"
@@ -12,27 +17,42 @@ function formatMessages(messages: Array<{ id: string; role: string; text: string
         .join("\n\n")
 }
 
-export function buildRangeBackendPrompt(request: BackendRangeRequest): string {
-    return `You are generating a compact replacement summary for a selected conversation range.
+function buildBackendPrompt(
+    header: string,
+    topicLabel: string,
+    topic: string,
+    selectedMessages: Array<{ id: string; role: string; text: string }>,
+    responseShape: string,
+    extraSection?: string,
+): string {
+    return `${header}
 
-Topic: ${request.topic}
+${topicLabel}: ${topic}${extraSection ? `\n${extraSection}` : ""}
 
 Selected messages:
-${formatMessages(request.selectedMessages)}
+${formatMessages(selectedMessages)}
 
 Return only JSON in this exact shape:
-{"summary":"concise technical summary preserving decisions, constraints, file paths, commands, errors, and next steps"}`
+${responseShape}`
+}
+
+export function buildRangeBackendPrompt(request: BackendRangeRequest): string {
+    return buildBackendPrompt(
+        "You are generating a compact replacement summary for a selected conversation range.",
+        "Topic",
+        request.topic,
+        request.selectedMessages,
+        RANGE_RESPONSE_SHAPE,
+    )
 }
 
 export function buildMessageBackendPrompt(request: BackendMessageRequest): string {
-    return `You are generating compact replacement summaries for selected conversation messages.
-
-Batch topic: ${request.topic}
-Target message IDs: ${(request.targets ?? []).map((target) => target.messageId).join(", ")}
-
-Selected messages:
-${formatMessages(request.selectedMessages)}
-
-Return only JSON in this exact shape:
-{"summaries":[{"messageId":"m0001","topic":"short topic","summary":"concise technical summary preserving decisions, constraints, file paths, commands, errors, and next steps"}]}`
+    return buildBackendPrompt(
+        "You are generating compact replacement summaries for selected conversation messages.",
+        "Batch topic",
+        request.topic,
+        request.selectedMessages,
+        MESSAGE_RESPONSE_SHAPE,
+        `Target message IDs: ${(request.targets ?? []).map((target) => target.messageId).join(", ")}`,
+    )
 }
