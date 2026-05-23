@@ -688,3 +688,26 @@ git commit -m "chore: record compress backend verification evidence"
 - 当前仓库使用的 SDK v1 调用形态中，`session.messages` 通过 `client.session.messages({ path: { id: sessionId } })` 调用；类型定义 `SessionMessagesData` 对应 `path.id`、可选 `query.directory` / `query.limit`，返回 `200: Array<{ info: Message; parts: Array<Part> }>`。仓库已有 `lib/compress/search.ts` 用 `response?.data || response` 兼容包裹/直返两种运行时形态。
 - `session.prompt` 通过 `client.session.prompt({ path: { id: sessionId }, body: { parts, model, agent?, noReply?, system?, tools? } })` 调用；指定模型字段路径是 `body.model.providerID` 和 `body.model.modelID`。现有 `lib/ui/notification.ts` 已按这个结构发送 ignored message。
 - SDK v1 暴露原生 `client.session.create({ body?: { parentID?: string; title?: string }, query?: { directory?: string } })`，返回 `Session`；因此 backend compact 初版可以创建独立 session，再对该 session 调 `session.prompt`，用 `compress.backend.model` 解析出的 `{ providerID, modelID }` 指定压缩模型。
+
+## 验证证据
+
+### 命令
+
+- `npm run typecheck`
+- `npm run test`
+- `npm run format:check`
+
+### 结果摘要
+
+- `npm run typecheck`：`tsc --noEmit` 完成，无类型错误。
+- `npm run test`：Node test runner 执行 `tests/*.test.ts`，结果 `tests 101`、`pass 101`、`fail 0`。
+- `npm run format:check`：Prettier 检查全部匹配文件，结果 `All matched files use Prettier code style!`。
+
+### 是否通过
+
+通过。
+
+### 未覆盖风险
+
+- 当前 worktree 不存在 `README.zh-CN.md`，因此 Task 11 中的中文 README 更新项未执行。
+- 后端 compact session 的真实模型调用未连接外部服务做端到端实测；当前覆盖为 SDK 调用形态、模型字段、结构化响应、超时、range/message 集成路径的本地自动化测试。
