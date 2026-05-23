@@ -35,14 +35,16 @@ function extractText(response: any): string {
     return text
 }
 
-function parseSummary(text: string): BackendSummaryResult {
-    let parsed: any
+function parseJsonResponse(text: string): any {
     try {
-        parsed = JSON.parse(text)
+        return JSON.parse(text)
     } catch {
         throw new Error("compress backend response must be valid JSON")
     }
+}
 
+function parseSummary(text: string): BackendSummaryResult {
+    const parsed = parseJsonResponse(text)
     if (typeof parsed?.summary !== "string" || parsed.summary.trim().length === 0) {
         throw new Error("compress backend response must include a non-empty summary")
     }
@@ -53,13 +55,7 @@ function parseSummary(text: string): BackendSummaryResult {
 }
 
 function parseMessageSummaries(text: string): BackendMessageSummaryResult {
-    let parsed: any
-    try {
-        parsed = JSON.parse(text)
-    } catch {
-        throw new Error("compress backend response must be valid JSON")
-    }
-
+    const parsed = parseJsonResponse(text)
     if (!Array.isArray(parsed?.summaries)) {
         throw new Error("compress backend response must include summaries")
     }

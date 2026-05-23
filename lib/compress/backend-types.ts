@@ -3,8 +3,6 @@ export interface BackendModelRef {
     modelID: string
 }
 
-export type BackendCompressionMode = "range" | "message"
-
 export interface BackendSelectedMessage {
     id: string
     role: string
