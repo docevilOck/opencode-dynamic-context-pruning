@@ -160,6 +160,33 @@ test("compress message tool appends non-editable format extension", () => {
     assert.match(tool.description, /Raw message ID only: mNNNN/)
 })
 
+test("message tool schema omits summary when backend is enabled", async () => {
+    const config = buildConfig()
+    config.compress.backend = {
+        enabled: true,
+        mode: "session-prompt",
+        timeoutMs: 60000,
+        model: "openai/gpt-5-mini",
+    }
+
+    const tool = createCompressMessageTool({
+        client: {},
+        state: createSessionState(),
+        logger: new Logger(false),
+        config,
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressMessage: "", compressRange: "" }
+            },
+        },
+    } as any)
+
+    const content = String(tool.description ?? "")
+    assert.ok(content.includes("messageId"))
+    assert.ok(!content.includes("Complete technical summary replacing that one message"))
+})
+
 test("compress message mode batches individual message summaries", async () => {
     const sessionID = `ses_message_compress_${Date.now()}`
     const rawMessages = buildMessages(sessionID)

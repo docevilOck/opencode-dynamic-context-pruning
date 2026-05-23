@@ -274,6 +274,9 @@ export async function sendCompressNotification(
         if (config.compress.showCompression) {
             message += `\n→ Compression (~${summaryTokensStr}): ${summary}`
         }
+        if (config.compress.backend?.enabled && config.compress.backend.model) {
+            message += `\n→ Compact model: ${config.compress.backend.model}`
+        }
     }
 
     if (config.pruneNotificationType === "toast") {

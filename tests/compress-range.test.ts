@@ -179,6 +179,34 @@ test("compress range rebuilds subagent message refs after session state was rese
     assert.equal(state.prune.messages.blocksById.size, 1)
 })
 
+test("range tool schema omits summary when backend is enabled", async () => {
+    const config = buildConfig()
+    config.compress.backend = {
+        enabled: true,
+        mode: "session-prompt",
+        timeoutMs: 60000,
+        model: "openai/gpt-5-mini",
+    }
+
+    const tool = createCompressRangeTool({
+        client: {},
+        state: createSessionState(),
+        logger: new Logger(false),
+        config,
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    const content = String(tool.description ?? "")
+    assert.ok(content.includes("startId"))
+    assert.ok(content.includes("endId"))
+    assert.ok(!content.includes("Complete technical summary replacing all content in range"))
+})
+
 test("compress range mode appends protected prompt info", async () => {
     const sessionID = `ses_range_protect_tag_${Date.now()}`
     const rawMessages: WithParts[] = [

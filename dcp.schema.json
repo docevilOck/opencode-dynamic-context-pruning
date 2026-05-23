@@ -246,6 +246,39 @@
                     "type": "boolean",
                     "default": false,
                     "description": "When enabled, your messages are never lost during compression"
+                },
+                "backend": {
+                    "type": "object",
+                    "description": "Optional dedicated backend model used to generate compression summaries. When enabled, the primary model only selects message/range IDs.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Enable backend-generated compression summaries"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "enum": ["session-prompt"],
+                            "default": "session-prompt",
+                            "description": "Backend invocation mode. Initial implementation uses an isolated session prompt."
+                        },
+                        "timeoutMs": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 60000,
+                            "description": "Maximum time to wait for backend compression generation"
+                        },
+                        "model": {
+                            "type": "string",
+                            "description": "Compression backend model in providerID/modelID format"
+                        }
+                    },
+                    "default": {
+                        "enabled": false,
+                        "mode": "session-prompt",
+                        "timeoutMs": 60000
+                    }
                 }
             },
             "default": {
@@ -260,7 +293,12 @@
                 "nudgeForce": "soft",
                 "protectedTools": [],
                 "protectTags": false,
-                "protectUserMessages": false
+                "protectUserMessages": false,
+                "backend": {
+                    "enabled": false,
+                    "mode": "session-prompt",
+                    "timeoutMs": 60000
+                }
             }
         },
         "strategies": {

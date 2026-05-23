@@ -151,6 +151,16 @@ Each level overrides the previous, so project settings take priority over global
         // Preserve your messages during compression.
         // Warning: large copy-pasted prompts will never be compressed away
         "protectUserMessages": false,
+        // Optional backend model mode for compression summaries.
+        // When enabled, the primary model only selects message/range IDs.
+        // DCP creates an isolated backend session and calls model to generate summaries.
+        // model must use providerID/modelID format.
+        "backend": {
+            "enabled": false,
+            "mode": "session-prompt",
+            "timeoutMs": 60000,
+            // "model": "openai/gpt-5-mini"
+        },
     },
     // Automatic pruning strategies
     "strategies": {
@@ -173,6 +183,31 @@ Each level overrides the previous, so project settings take priority over global
 ```
 
 </details>
+
+### Compress Backend Model Mode
+
+By default, the primary model calls the `compress` tool with both target IDs and the final `summary`. You can instead enable a dedicated backend model:
+
+```jsonc
+{
+    "compress": {
+        "backend": {
+            "enabled": true,
+            "mode": "session-prompt",
+            "timeoutMs": 60000,
+            "model": "openai/gpt-5-mini",
+        },
+    },
+}
+```
+
+In backend mode:
+
+- `model` must be a single string in `providerID/modelID` format.
+- The primary model does not provide `summary`; the tool schema only accepts `messageId` or `startId`/`endId`.
+- DCP creates an isolated backend session and sends the selected conversation content to the configured model.
+- Backend mode adds one extra model call per compression execution.
+- If backend generation fails, the compression fails instead of falling back to a primary-model summary.
 
 ### Commands
 
