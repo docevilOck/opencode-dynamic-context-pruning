@@ -125,7 +125,9 @@ export function createCompressMessageTool(ctx: ToolContext): ReturnType<typeof t
     ctx.prompts.reload()
     const runtimePrompts = ctx.prompts.getRuntimePrompts()
     const backendEnabled = ctx.config.compress.backend?.enabled ?? false
-    const formatExtension = backendEnabled ? MESSAGE_BACKEND_FORMAT_EXTENSION : MESSAGE_FORMAT_EXTENSION
+    const formatExtension = backendEnabled
+        ? MESSAGE_BACKEND_FORMAT_EXTENSION
+        : MESSAGE_FORMAT_EXTENSION
 
     return tool({
         description: runtimePrompts.compressMessage + formatExtension,

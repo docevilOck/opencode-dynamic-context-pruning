@@ -68,9 +68,7 @@ function buildSchema(backendEnabled: boolean) {
         return {
             topic: tool.schema
                 .string()
-                .describe(
-                    "Short label (3-5 words) for display - e.g., 'Auth System Exploration'",
-                ),
+                .describe("Short label (3-5 words) for display - e.g., 'Auth System Exploration'"),
             content: tool.schema
                 .array(
                     tool.schema.object({
