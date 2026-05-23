@@ -39,6 +39,16 @@ export interface BackendSummaryResult {
     summary: string
 }
 
+export interface BackendMessageSummary {
+    messageId: string
+    topic: string
+    summary: string
+}
+
+export interface BackendMessageSummaryResult {
+    summaries: BackendMessageSummary[]
+}
+
 export function parseBackendModelRef(input: string): BackendModelRef {
     const index = input.indexOf("/")
     if (index <= 0 || index === input.length - 1) {

@@ -34,5 +34,5 @@ Selected messages:
 ${formatMessages(request.selectedMessages)}
 
 Return only JSON in this exact shape:
-{"summary":"concise technical summary preserving decisions, constraints, file paths, commands, errors, and next steps"}`
+{"summaries":[{"messageId":"m0001","topic":"short topic","summary":"concise technical summary preserving decisions, constraints, file paths, commands, errors, and next steps"}]}`
 }

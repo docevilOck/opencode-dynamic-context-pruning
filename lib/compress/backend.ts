@@ -1,5 +1,6 @@
 import { buildMessageBackendPrompt, buildRangeBackendPrompt } from "./backend-prompts"
 import {
+    type BackendMessageSummaryResult,
     type BackendSummaryRequest,
     type BackendSummaryResult,
     parseBackendModelRef,
@@ -51,6 +52,39 @@ function parseSummary(text: string): BackendSummaryResult {
     }
 }
 
+function parseMessageSummaries(text: string): BackendMessageSummaryResult {
+    let parsed: any
+    try {
+        parsed = JSON.parse(text)
+    } catch {
+        throw new Error("compress backend response must be valid JSON")
+    }
+
+    if (!Array.isArray(parsed?.summaries)) {
+        throw new Error("compress backend response must include summaries")
+    }
+
+    const summaries = parsed.summaries.map((entry: any) => {
+        if (typeof entry?.messageId !== "string" || entry.messageId.trim().length === 0) {
+            throw new Error("compress backend message summary must include messageId")
+        }
+        if (typeof entry?.topic !== "string" || entry.topic.trim().length === 0) {
+            throw new Error("compress backend message summary must include topic")
+        }
+        if (typeof entry?.summary !== "string" || entry.summary.trim().length === 0) {
+            throw new Error("compress backend message summary must include summary")
+        }
+
+        return {
+            messageId: entry.messageId.trim(),
+            topic: entry.topic.trim(),
+            summary: entry.summary.trim(),
+        }
+    })
+
+    return { summaries }
+}
+
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
     let timeout: ReturnType<typeof setTimeout> | undefined
     const timeoutPromise = new Promise<never>((_, reject) => {
@@ -69,8 +103,14 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 }
 
 export async function generateCompressionSummary(
+    request: BackendSummaryRequest & { mode: "range" },
+): Promise<BackendSummaryResult | undefined>
+export async function generateCompressionSummary(
+    request: BackendSummaryRequest & { mode: "message" },
+): Promise<BackendMessageSummaryResult | undefined>
+export async function generateCompressionSummary(
     request: BackendSummaryRequest,
-): Promise<BackendSummaryResult | undefined> {
+): Promise<BackendSummaryResult | BackendMessageSummaryResult | undefined> {
     if (!request.backend.enabled) {
         return undefined
     }
@@ -115,5 +155,6 @@ export async function generateCompressionSummary(
         request.backend.timeoutMs,
     )
 
-    return parseSummary(extractText(response))
+    const text = extractText(response)
+    return request.mode === "range" ? parseSummary(text) : parseMessageSummaries(text)
 }
