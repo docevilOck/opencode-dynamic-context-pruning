@@ -1,7 +1,10 @@
 import { tool } from "@opencode-ai/plugin"
 import type { ToolContext } from "./types"
 import { countTokens } from "../token-utils"
-import { MESSAGE_FORMAT_EXTENSION } from "../prompts/extensions/tool"
+import {
+    MESSAGE_BACKEND_FORMAT_EXTENSION,
+    MESSAGE_FORMAT_EXTENSION,
+} from "../prompts/extensions/tool"
 import { formatIssues, formatResult, resolveMessages, validateArgs } from "./message-utils"
 import { finalizeSession, prepareSession, type NotificationEntry } from "./pipeline"
 import { appendProtectedPromptInfo, appendProtectedTools } from "./protected-content"
@@ -13,7 +16,26 @@ import {
 } from "./state"
 import type { CompressMessageToolArgs } from "./types"
 
-function buildSchema() {
+function buildSchema(backendEnabled: boolean) {
+    if (backendEnabled) {
+        return {
+            topic: tool.schema
+                .string()
+                .describe(
+                    "Short label (3-5 words) for the overall batch - e.g., 'Closed Research Notes'",
+                ),
+            content: tool.schema
+                .array(
+                    tool.schema.object({
+                        messageId: tool.schema
+                            .string()
+                            .describe("Raw message ID to compress (e.g. m0001)"),
+                    }),
+                )
+                .describe("Batch of individual messages to compress using backend summaries"),
+        }
+    }
+
     return {
         topic: tool.schema
             .string()
@@ -41,11 +63,23 @@ function buildSchema() {
 export function createCompressMessageTool(ctx: ToolContext): ReturnType<typeof tool> {
     ctx.prompts.reload()
     const runtimePrompts = ctx.prompts.getRuntimePrompts()
+    const backendEnabled = ctx.config.compress.backend?.enabled ?? false
+    const formatExtension = backendEnabled ? MESSAGE_BACKEND_FORMAT_EXTENSION : MESSAGE_FORMAT_EXTENSION
 
     return tool({
-        description: runtimePrompts.compressMessage + MESSAGE_FORMAT_EXTENSION,
-        args: buildSchema(),
+        description: runtimePrompts.compressMessage + formatExtension,
+        args: buildSchema(backendEnabled),
         async execute(args, toolCtx) {
+            if (ctx.config.compress.backend?.enabled ?? false) {
+                const hasSummary =
+                    Array.isArray((args as any).content) &&
+                    (args as any).content.some((item: any) => "summary" in item)
+
+                if (hasSummary) {
+                    throw new Error("compress backend mode does not accept summary input")
+                }
+            }
+
             const input = args as CompressMessageToolArgs
             validateArgs(input)
             const callId =

@@ -22,6 +22,16 @@ export interface CompressRangeToolArgs {
     content: CompressRangeEntry[]
 }
 
+export interface CompressRangeBackendEntry {
+    startId: string
+    endId: string
+}
+
+export interface CompressRangeBackendToolArgs {
+    topic: string
+    content: CompressRangeBackendEntry[]
+}
+
 export interface CompressMessageEntry {
     messageId: string
     topic: string
@@ -31,6 +41,15 @@ export interface CompressMessageEntry {
 export interface CompressMessageToolArgs {
     topic: string
     content: CompressMessageEntry[]
+}
+
+export interface CompressMessageBackendEntry {
+    messageId: string
+}
+
+export interface CompressMessageBackendToolArgs {
+    topic: string
+    content: CompressMessageBackendEntry[]
 }
 
 export interface BoundaryReference {
