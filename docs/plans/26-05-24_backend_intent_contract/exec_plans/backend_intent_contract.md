@@ -47,6 +47,18 @@
 
 ### 任务 7：整体验证与证据回填
 
-- [ ] 运行 backend 相关测试集
-- [ ] 运行类型检查
-- [ ] 回填验证记录
+- [x] 运行 backend 相关测试集
+- [x] 运行类型检查
+- [x] 回填验证记录
+
+## 验证记录
+
+- 命令：`node --import tsx --test tests/compress-range.test.ts tests/compress-message.test.ts tests/compress-backend.test.ts tests/compress-backend-integration.test.ts`
+- 结果摘要：30 个测试通过，0 失败，0 skipped。
+- 是否通过：通过
+- 未覆盖风险：未调用真实 backend 模型服务，backend 行为由测试桩覆盖。
+
+- 命令：`npm run typecheck`
+- 结果摘要：`tsc --noEmit` 退出码 0。
+- 是否通过：通过
+- 未覆盖风险：仅覆盖 TypeScript 静态类型，不覆盖运行时真实 OpenCode 宿主集成。
