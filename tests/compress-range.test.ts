@@ -180,6 +180,57 @@ test("compress range rebuilds subagent message refs after session state was rese
     assert.equal(state.prune.messages.blocksById.size, 1)
 })
 
+test("compress range rejects automatic execution during post-compression cooldown", async () => {
+    const sessionID = `ses_range_compress_cooldown_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const config = buildConfig()
+    config.compress.postCompressionNudgeCooldownMessages = 30
+
+    const state = createSessionState()
+    state.sessionId = sessionID
+    state.nudges.lastCompressionMessageCount = rawMessages.length
+
+    const tool = createCompressRangeTool({
+        client: {
+            session: {
+                messages: async () => ({ data: rawMessages }),
+            },
+        },
+        state,
+        logger: new Logger(false),
+        config,
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        () =>
+            tool.execute(
+                {
+                    topic: "Cooldown guard",
+                    content: [
+                        {
+                            startId: "m0001",
+                            endId: "m0002",
+                            summary: "Should be rejected before resolving message references.",
+                        },
+                    ],
+                },
+                {
+                    ask: async () => {},
+                    metadata: () => {},
+                    sessionID,
+                    messageID: "msg-compress-cooldown",
+                },
+            ),
+        /previous compression happened recently/,
+    )
+})
+
 test("range tool schema requires current task and retention hint when backend is enabled", async () => {
     const config = buildConfig()
     config.compress.backend = {

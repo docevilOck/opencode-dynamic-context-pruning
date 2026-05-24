@@ -34,6 +34,38 @@ export interface PreparedSession {
     searchContext: SearchContext
 }
 
+/**
+ * @brief 校验成功压缩后的执行冷却期，避免模型连续自动调用 compress。
+ * @param ctx 压缩工具上下文，包含配置与会话状态。
+ * @param rawMessages 当前会话原始消息列表。
+ * @return 无；若仍处于冷却期则抛出可读错误。
+ */
+function assertPostCompressionExecutionCooldown(ctx: ToolContext, rawMessages: WithParts[]): void {
+    if (ctx.state.manualMode === "compress-pending") {
+        return
+    }
+
+    const cooldown = Math.max(
+        0,
+        Math.floor(ctx.config.compress.postCompressionNudgeCooldownMessages || 0),
+    )
+    const lastCompressionMessageCount = ctx.state.nudges.lastCompressionMessageCount
+    if (cooldown <= 0 || lastCompressionMessageCount === undefined) {
+        return
+    }
+
+    const currentMessageCount = rawMessages.filter((msg) => !isIgnoredUserMessage(msg)).length
+    const messagesSinceCompression = currentMessageCount - lastCompressionMessageCount
+    if (messagesSinceCompression >= cooldown) {
+        return
+    }
+
+    const remaining = cooldown - messagesSinceCompression
+    throw new Error(
+        `Compression skipped: the previous compression happened recently. Wait for at least ${remaining} more new message${remaining === 1 ? "" : "s"} before compressing again.`,
+    )
+}
+
 export async function prepareSession(
     ctx: ToolContext,
     toolCtx: RunContext,
@@ -64,6 +96,8 @@ export async function prepareSession(
         rawMessages,
         ctx.config.manualMode.enabled,
     )
+
+    assertPostCompressionExecutionCooldown(ctx, rawMessages)
 
     assignMessageRefs(ctx.state, rawMessages)
 

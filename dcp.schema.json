@@ -227,7 +227,7 @@
                     "type": "number",
                     "default": 0,
                     "minimum": 0,
-                    "description": "After a successful compression, suppress automatic compression reminder injection until at least this many new non-ignored messages have been added. 0 disables the cooldown."
+                    "description": "After a successful compression, suppress automatic compression reminders and automatic compress execution until at least this many new non-ignored messages have been added. 0 disables the cooldown."
                 },
                 "nudgeForce": {
                     "type": "string",

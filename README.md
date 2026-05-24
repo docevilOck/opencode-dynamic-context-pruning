@@ -157,8 +157,9 @@ Typical split:
         // Start adding compression reminders after this many
         // messages have happened since the last user message
         "iterationNudgeThreshold": 15,
-        // After a successful compression, suppress automatic reminder injection
-        // until this many new non-ignored messages have been added (0 = disabled)
+        // After a successful compression, suppress automatic reminders and
+        // automatic compress execution until this many new non-ignored messages
+        // have been added (0 = disabled)
         "postCompressionNudgeCooldownMessages": 0,
         // Controls how likely compression is after user messages
         // ("strong" = more likely, "soft" = less likely)
