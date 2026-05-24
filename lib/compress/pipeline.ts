@@ -97,6 +97,10 @@ export async function prepareSession(
         ctx.config.manualMode.enabled,
     )
 
+    if (ctx.state.isInternalDcpSession) {
+        throw new Error("Internal DCP backend session: compress is disabled.")
+    }
+
     assertPostCompressionExecutionCooldown(ctx, rawMessages)
 
     assignMessageRefs(ctx.state, rawMessages)

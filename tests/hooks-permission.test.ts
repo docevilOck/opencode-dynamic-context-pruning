@@ -204,6 +204,49 @@ test("chat message transform drops messages without info instead of crashing", a
     assert.equal(output.messages.length, 0)
 })
 
+test("chat message transform skips DCP internal backend sessions", async () => {
+    const state = createSessionState()
+    const logger = new Logger(false)
+    const config = buildConfig("allow")
+    config.compress.maxContextLimit = 0
+    config.compress.minContextLimit = 0
+    const handler = createChatMessageTransformHandler(
+        {
+            session: {
+                get: async () => ({
+                    data: {
+                        parentID: "parent-session",
+                        title: "DCP compact: continue current task",
+                    },
+                }),
+            },
+        } as any,
+        state,
+        logger,
+        config,
+        {
+            reload() {},
+            getRuntimePrompts() {
+                return runtimePrompts as any
+            },
+        } as any,
+        { global: undefined, agents: {} },
+    )
+    const output = {
+        messages: [
+            buildMessage("user-1", "user", "backend prompt source material"),
+            buildMessage("assistant-1", "assistant", "backend model response"),
+        ],
+    }
+
+    await handler({}, output)
+
+    assert.equal(state.isInternalDcpSession, true)
+    assert.equal(textOf(output.messages[1]).includes("CTX_NUDGE"), false)
+    assert.equal(textOf(output.messages[1]).includes("<dcp-message-id>"), false)
+    assert.equal(state.nudges.contextLimitAnchors.size, 0)
+})
+
 test("post-compression nudge cooldown suppresses automatic reminder injection", () => {
     const state = createSessionState()
     const logger = new Logger(false)

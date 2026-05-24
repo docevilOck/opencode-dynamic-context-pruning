@@ -94,6 +94,7 @@ export interface Nudges {
 export interface SessionState {
     sessionId: string | null
     isSubAgent: boolean
+    isInternalDcpSession: boolean
     manualMode: false | "active" | "compress-pending"
     compressPermission: "ask" | "allow" | "deny" | undefined
     pendingManualTrigger: PendingManualTrigger | null

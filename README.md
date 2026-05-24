@@ -160,7 +160,7 @@ Typical split:
         // After a successful compression, suppress automatic reminders and
         // automatic compress execution until this many new non-ignored messages
         // have been added (0 = disabled)
-        "postCompressionNudgeCooldownMessages": 0,
+        "postCompressionNudgeCooldownMessages": 5,
         // Controls how likely compression is after user messages
         // ("strong" = more likely, "soft" = less likely)
         "nudgeForce": "soft",

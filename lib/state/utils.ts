@@ -51,12 +51,27 @@ export function serializePruneMessagesState(
     }
 }
 
-export async function isSubAgentSession(client: any, sessionID: string): Promise<boolean> {
+export interface SessionRuntimeInfo {
+    isSubAgent: boolean
+    isInternalDcpSession: boolean
+}
+
+export async function getSessionRuntimeInfo(
+    client: any,
+    sessionID: string,
+): Promise<SessionRuntimeInfo> {
     try {
         const result = await client.session.get({ path: { id: sessionID } })
-        return !!result.data?.parentID
+        const title = typeof result.data?.title === "string" ? result.data.title : ""
+        return {
+            isSubAgent: !!result.data?.parentID,
+            isInternalDcpSession: title.startsWith("DCP compact:"),
+        }
     } catch (error: any) {
-        return false
+        return {
+            isSubAgent: false,
+            isInternalDcpSession: false,
+        }
     }
 }
 

@@ -3,7 +3,7 @@ import type { Logger } from "../logger"
 import { applyPendingCompressionDurations } from "../compress/timing"
 import { loadSessionState, saveSessionState } from "./persistence"
 import {
-    isSubAgentSession,
+    getSessionRuntimeInfo,
     findLastCompactionTimestamp,
     countTurns,
     resetOnCompaction,
@@ -66,6 +66,7 @@ export function createSessionState(): SessionState {
     return {
         sessionId: null,
         isSubAgent: false,
+        isInternalDcpSession: false,
         manualMode: false,
         compressPermission: undefined,
         pendingManualTrigger: null,
@@ -105,6 +106,7 @@ export function createSessionState(): SessionState {
 export function resetSessionState(state: SessionState): void {
     state.sessionId = null
     state.isSubAgent = false
+    state.isInternalDcpSession = false
     state.manualMode = false
     state.compressPermission = undefined
     state.pendingManualTrigger = null
@@ -155,8 +157,9 @@ export async function ensureSessionInitialized(
     state.manualMode = manualModeEnabled ? "active" : false
     state.sessionId = sessionId
 
-    const isSubAgent = await isSubAgentSession(client, sessionId)
-    state.isSubAgent = isSubAgent
+    const sessionRuntimeInfo = await getSessionRuntimeInfo(client, sessionId)
+    state.isSubAgent = sessionRuntimeInfo.isSubAgent
+    state.isInternalDcpSession = sessionRuntimeInfo.isInternalDcpSession
     // logger.info("isSubAgent = " + isSubAgent)
 
     state.lastCompaction = findLastCompactionTimestamp(messages)

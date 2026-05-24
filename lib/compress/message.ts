@@ -55,7 +55,9 @@ function buildSchema(backendEnabled: boolean): ToolArgsShape {
                 ),
             retentionHint: tool.schema
                 .string()
-                .describe("Information that must be preserved for continuing the active task"),
+                .describe(
+                    "Structured Retain checklist for the backend summaries: user intent, verification evidence, important changes/decisions/paths/errors, next steps, and do-not-overclaim constraints",
+                ),
             content: tool.schema
                 .array(
                     tool.schema.object({

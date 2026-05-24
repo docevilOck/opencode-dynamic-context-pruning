@@ -24,7 +24,7 @@ THE FORMAT OF COMPRESS
 \`\`\`
 {
   currentTask: string,     // Active task the main agent will continue after compression
-  retentionHint: string,   // Information that must be preserved for that task
+  retentionHint: string,   // Structured Retain list: user intent, verification, changes, next steps, constraints
   content: [               // One or more ranges to compress
     {
       startId: string,     // Boundary ID at range start: mNNNN or bN
@@ -34,7 +34,16 @@ THE FORMAT OF COMPRESS
 }
 \`\`\`
 
-Backend compression mode is enabled. Do not provide summary. Do not use currentTask to summarize the selected messages. The plugin will generate summaries with the configured backend model.`
+Backend compression mode is enabled. Do not provide summary. Do not use currentTask to summarize the selected messages. The plugin will generate summaries with the configured backend model.
+
+Write retentionHint as a compact structured checklist:
+- User intent and active task.
+- Verification evidence: exact commands, pass/fail status, key counts, build/typecheck results.
+- Important changed files, decisions, constraints, errors, paths, and tool outputs.
+- Concrete next steps.
+- Explicit do-not-overclaim or safety constraints.
+
+Prefer specific facts over generic phrases like "retain important details".`
 
 export const MESSAGE_FORMAT_EXTENSION = `
 THE FORMAT OF COMPRESS
@@ -58,7 +67,7 @@ THE FORMAT OF COMPRESS
 \`\`\`
 {
   currentTask: string,     // Active task the main agent will continue after compression
-  retentionHint: string,   // Information that must be preserved for that task
+  retentionHint: string,   // Structured Retain list: user intent, verification, changes, next steps, constraints
   content: [               // One or more messages to compress independently
     {
       messageId: string    // Raw message ID only: mNNNN (ignore metadata attributes like priority)
@@ -67,4 +76,13 @@ THE FORMAT OF COMPRESS
 }
 \`\`\`
 
-Backend compression mode is enabled. Do not provide per-message topic or summary. The plugin will generate summaries with the configured backend model.`
+Backend compression mode is enabled. Do not provide per-message topic or summary. The plugin will generate summaries with the configured backend model.
+
+Write retentionHint as a compact structured checklist:
+- User intent and active task.
+- Verification evidence: exact commands, pass/fail status, key counts, build/typecheck results.
+- Important changed files, decisions, constraints, errors, paths, and tool outputs.
+- Concrete next steps.
+- Explicit do-not-overclaim or safety constraints.
+
+Prefer specific facts over generic phrases like "retain important details".`

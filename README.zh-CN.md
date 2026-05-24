@@ -157,7 +157,7 @@ DCP 使用独立配置文件，按以下顺序查找：
         // 自上一次用户消息后，累计到多少条消息开始添加压缩提醒
         "iterationNudgeThreshold": 15,
         // 成功压缩后，至少新增多少条非忽略消息才再次注入自动提醒并允许自动压缩（0 = 关闭）
-        "postCompressionNudgeCooldownMessages": 0,
+        "postCompressionNudgeCooldownMessages": 5,
         // 控制用户消息后压缩提醒的强度
         // "strong" = 更容易压缩，"soft" = 较弱
         "nudgeForce": "soft",

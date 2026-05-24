@@ -57,7 +57,7 @@ test("uses configured model in a created backend session", async () => {
     assert.match(received.body.parts[0].text, /Current task: Continue auth cleanup/)
     assert.match(
         received.body.parts[0].text,
-        /Retention hint: Keep decisions, constraints, and pending fixes/,
+        /Retention checklist:\nKeep decisions, constraints, and pending fixes/,
     )
     assert.match(
         received.body.parts[0].text,

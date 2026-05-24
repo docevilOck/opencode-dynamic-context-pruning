@@ -225,7 +225,7 @@
                 },
                 "postCompressionNudgeCooldownMessages": {
                     "type": "number",
-                    "default": 0,
+                    "default": 5,
                     "minimum": 0,
                     "description": "After a successful compression, suppress automatic compression reminders and automatic compress execution until at least this many new non-ignored messages have been added. 0 disables the cooldown."
                 },
@@ -296,7 +296,7 @@
                 "minContextLimit": 50000,
                 "nudgeFrequency": 5,
                 "iterationNudgeThreshold": 15,
-                "postCompressionNudgeCooldownMessages": 0,
+                "postCompressionNudgeCooldownMessages": 5,
                 "nudgeForce": "soft",
                 "protectedTools": [],
                 "protectTags": false,

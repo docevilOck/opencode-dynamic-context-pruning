@@ -116,6 +116,10 @@ export function createChatMessageTransformHandler(
 
         await checkSession(client, state, logger, output.messages, config.manualMode.enabled)
 
+        if (state.isInternalDcpSession) {
+            return
+        }
+
         syncCompressPermissionState(state, config, hostPermissions, output.messages)
 
         if (state.isSubAgent && !config.experimental.allowSubAgents) {

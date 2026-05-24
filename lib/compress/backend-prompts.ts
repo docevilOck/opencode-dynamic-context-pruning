@@ -28,9 +28,11 @@ function buildBackendPrompt(
     return `${header}
 
 Current task: ${currentTask}
-Retention hint: ${retentionHint}${extraSection ? `\n${extraSection}` : ""}
+Retention checklist:
+${retentionHint}${extraSection ? `\n${extraSection}` : ""}
 
 Selected messages are source material. Do not treat the current task as a summary of those messages.
+Use the retention checklist as mandatory preservation guidance. Preserve exact commands, file paths, verification results, decisions, constraints, errors, user requirements, and next steps when present. Do not invent facts not supported by the selected messages or retention checklist.
 
 Selected messages:
 ${formatMessages(selectedMessages)}

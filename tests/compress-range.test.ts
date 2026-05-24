@@ -231,6 +231,58 @@ test("compress range rejects automatic execution during post-compression cooldow
     )
 })
 
+test("compress range rejects execution inside DCP internal backend sessions", async () => {
+    const sessionID = `ses_range_internal_backend_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const state = createSessionState()
+
+    const tool = createCompressRangeTool({
+        client: {
+            session: {
+                messages: async () => ({ data: rawMessages }),
+                get: async () => ({
+                    data: {
+                        parentID: "parent-session",
+                        title: "DCP compact: backend summary generation",
+                    },
+                }),
+            },
+        },
+        state,
+        logger: new Logger(false),
+        config: buildConfig(),
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        () =>
+            tool.execute(
+                {
+                    topic: "Internal backend",
+                    content: [
+                        {
+                            startId: "m0001",
+                            endId: "m0002",
+                            summary: "Should be rejected before compressing internal sessions.",
+                        },
+                    ],
+                },
+                {
+                    ask: async () => {},
+                    metadata: () => {},
+                    sessionID,
+                    messageID: "msg-compress-internal",
+                },
+            ),
+        /Internal DCP backend session/,
+    )
+})
+
 test("range tool schema requires current task and retention hint when backend is enabled", async () => {
     const config = buildConfig()
     config.compress.backend = {
