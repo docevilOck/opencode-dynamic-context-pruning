@@ -155,7 +155,8 @@ test("range mode uses backend summary instead of primary model summary", async (
 
     await tool.execute(
         {
-            topic: "Backend range",
+            currentTask: "Continue investigating the issue",
+            retentionHint: "Keep code paths, constraints, and unresolved questions",
             content: [
                 {
                     startId: "m0001",
@@ -199,7 +200,8 @@ test("message mode uses backend generated summaries", async () => {
 
     await tool.execute(
         {
-            topic: "Backend messages",
+            currentTask: "Continue cleanup follow-up",
+            retentionHint: "Keep user intent and assistant findings",
             content: [{ messageId: "m0001" }, { messageId: "m0002" }],
         },
         {
@@ -243,7 +245,8 @@ test("message mode rejects mismatched backend message ids", async () => {
     await assert.rejects(
         tool.execute(
             {
-                topic: "Backend messages",
+                currentTask: "Continue cleanup follow-up",
+                retentionHint: "Keep user intent and assistant findings",
                 content: [{ messageId: "m0001" }, { messageId: "m0002" }],
             },
             {
@@ -278,7 +281,8 @@ test("range mode rejects manual summaries when backend is enabled", async () => 
     await assert.rejects(
         tool.execute(
             {
-                topic: "Backend range",
+                currentTask: "Continue investigating the issue",
+                retentionHint: "Keep code paths, constraints, and unresolved questions",
                 content: [
                     {
                         startId: "m0001",
@@ -322,7 +326,8 @@ test("message mode rejects manual summaries when backend is enabled", async () =
     await assert.rejects(
         tool.execute(
             {
-                topic: "Backend messages",
+                currentTask: "Continue cleanup follow-up",
+                retentionHint: "Keep user intent and assistant findings",
                 content: [
                     {
                         messageId: "m0001",

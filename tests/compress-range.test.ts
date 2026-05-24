@@ -179,7 +179,7 @@ test("compress range rebuilds subagent message refs after session state was rese
     assert.equal(state.prune.messages.blocksById.size, 1)
 })
 
-test("range tool schema omits summary when backend is enabled", async () => {
+test("range tool schema requires current task and retention hint when backend is enabled", async () => {
     const config = buildConfig()
     config.compress.backend = {
         enabled: true,
@@ -202,6 +202,8 @@ test("range tool schema omits summary when backend is enabled", async () => {
     } as any)
 
     const content = String(tool.description ?? "")
+    assert.ok(content.includes("currentTask"))
+    assert.ok(content.includes("retentionHint"))
     assert.ok(content.includes("startId"))
     assert.ok(content.includes("endId"))
     assert.ok(!content.includes("Complete technical summary replacing all content in range"))

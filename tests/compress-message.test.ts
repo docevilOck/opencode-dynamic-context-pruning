@@ -160,7 +160,7 @@ test("compress message tool appends non-editable format extension", () => {
     assert.match(tool.description, /Raw message ID only: mNNNN/)
 })
 
-test("message tool schema omits summary when backend is enabled", async () => {
+test("message tool schema requires current task and retention hint when backend is enabled", async () => {
     const config = buildConfig()
     config.compress.backend = {
         enabled: true,
@@ -183,6 +183,8 @@ test("message tool schema omits summary when backend is enabled", async () => {
     } as any)
 
     const content = String(tool.description ?? "")
+    assert.ok(content.includes("currentTask"))
+    assert.ok(content.includes("retentionHint"))
     assert.ok(content.includes("messageId"))
     assert.ok(!content.includes("Complete technical summary replacing that one message"))
 })
