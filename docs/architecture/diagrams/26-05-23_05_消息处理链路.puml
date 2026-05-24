@@ -1,0 +1,28 @@
+@startuml
+left to right direction
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+component "hooks.ts\nchat transform" as HOOK
+component "messages/shape.ts" as SHAPE
+component "messages/query.ts\nmessages/priority.ts" as QUERY
+component "messages/prune.ts\nmessages/sync.ts" as PRUNE
+component "messages/inject/*" as INJECT
+component "subagents/subagent-results.ts" as SUB
+component "message-ids.ts\nprotected-patterns.ts" as IDS
+component "state/*" as STATE
+
+HOOK --> SHAPE
+HOOK --> QUERY
+HOOK --> PRUNE
+HOOK --> INJECT
+HOOK --> SUB
+
+QUERY --> IDS
+PRUNE --> STATE
+PRUNE --> IDS
+INJECT --> STATE
+INJECT --> IDS
+SUB --> STATE
+
+@enduml

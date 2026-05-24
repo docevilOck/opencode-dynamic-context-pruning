@@ -1,0 +1,80 @@
+@startuml
+title 压缩专用模型后端接入点
+
+actor "主模型" as MainModel
+participant "compress tool\nrange / message" as Tool
+participant "prepareSession()" as Pipeline
+participant "backend.ts" as Backend
+participant "独立压缩 session" as CompactSession
+participant "指定 compact 模型" as CompactModel
+participant "applyCompressionState()\nfinalizeSession()" as Persist
+
+MainModel -> Tool : 提交压缩目标 ID\n(messageId 或 startId/endId)
+Tool -> Pipeline : 拉取主会话消息与上下文
+Pipeline -> Backend : 交付选中消息、block、保护内容
+Backend -> CompactSession : 新开独立 session 或等效隔离调用
+CompactSession -> CompactModel : 用指定 provider/model 生成摘要
+CompactModel --> Backend : 结构化 summary 结果
+Backend --> Tool : 最终摘要
+Tool -> Persist : 写入 CompressionBlock 与通知
+
+note right of Backend
+本次改造接入点：
+1. 保留现有 compress tool 入口
+2. 最终摘要来源改为独立 compact session
+3. 主模型只决定压缩目标 ID，不决定最终摘要
+end note
+
+newpage
+title 压缩专用模型后端主流程
+
+start
+:主模型调用 compress tool;
+:仅提交压缩目标 ID;
+:prepareSession 拉取 session.messages;
+if (backend.enabled?) then (否)
+  :沿用 plan.entry.summary;
+  :写入现有 block;
+  stop
+else (是)
+  :解析 range/message 目标;
+  :组装待压缩消息与保护内容;
+  :创建独立 compact session;
+  :指定 providerID/modelID 调 session.prompt;
+  :要求返回结构化摘要;
+  if (调用失败?) then (是)
+    :compress 整体失败;
+    stop
+  else (否)
+    :用后端摘要替换主模型 summary;
+    :applyCompressionState;
+    :finalizeSession;
+    stop
+  endif
+endif
+
+newpage
+title 前后对照
+
+rectangle "Before" {
+  [主模型选压缩目标]
+  [主模型直接给 summary]
+  [tool 仅负责写 block]
+}
+
+rectangle "After" {
+  [主模型选压缩目标]
+  [主模型只传目标 ID]
+  [tool 调独立 compact session]
+  [指定模型生成最终 summary]
+  [tool 写 block]
+}
+
+[主模型选压缩目标] --> [主模型直接给 summary]
+[主模型直接给 summary] --> [tool 仅负责写 block]
+
+[主模型选压缩目标] --> [主模型只传目标 ID]
+[主模型只传目标 ID] --> [tool 调独立 compact session]
+[tool 调独立 compact session] --> [指定模型生成最终 summary]
+[指定模型生成最终 summary] --> [tool 写 block]
+@enduml

@@ -8,15 +8,6 @@
 
 **Tech Stack:** TypeScript、`@opencode-ai/plugin`、`@opencode-ai/sdk`、Node test runner、Prettier、现有 DCP `compress/state/prompt` 基础设施
 
-## Backend intent contract supplement
-
-后续补强实现把 backend 模式下主 agent 的输入契约从 `topic + content` 调整为 `currentTask + retentionHint + content`：
-
-- `currentTask` 表示压缩后主 agent 还要继续推进的当前任务，不是被压缩消息的标题或摘要。
-- `retentionHint` 表示这批消息中应尽量保留的信息方向，包括事实、约束、决策、文件路径、命令、错误和下一步。
-- `topic` 不再作为 backend tool 输入字段；message 模式中 backend 仍可在输出里返回 `messageId/topic/summary`，该 `topic` 由 backend 从源消息中归纳。
-- backend prompt 必须明确 selected messages 只是 source material，并要求 compact subagent 生成服务于 `currentTask` 的摘要。
-
 ---
 
 ### Task 1: 固化 SDK 与配置事实
