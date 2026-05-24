@@ -168,7 +168,7 @@ Typical split:
         // Warning: large copy-pasted prompts will never be compressed away
         "protectUserMessages": false,
         // Optional backend model mode for compression summaries.
-        // When enabled, the primary model only selects message/range IDs.
+        // When enabled, the primary model sends currentTask, retentionHint, and target IDs.
         // DCP creates an isolated backend session and calls model to generate summaries.
         // To enable it, set enabled=true and provide model in providerID/modelID format.
         "backend": {
@@ -220,7 +220,9 @@ By default, the primary model calls the `compress` tool with both target IDs and
 In backend mode:
 
 - `model` must be a single string in `providerID/modelID` format.
-- The primary model does not provide `summary`; the tool schema only accepts `messageId` or `startId`/`endId`.
+- The primary model does not provide `summary`; it sends `currentTask`, `retentionHint`, and target IDs.
+- `currentTask` is the active task the primary model will continue after compression, not a summary of the selected messages.
+- `retentionHint` describes the facts, constraints, decisions, or next steps that should survive compression.
 - DCP creates an isolated backend session and sends the selected conversation content to the configured model.
 - Backend mode adds one extra model call per compression execution.
 - If backend generation fails, the compression fails instead of falling back to a primary-model summary.

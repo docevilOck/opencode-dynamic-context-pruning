@@ -167,7 +167,7 @@ DCP 使用独立配置文件，按以下顺序查找：
         // 注意：大段粘贴进来的提示内容将不会再被压缩
         "protectUserMessages": false,
         // 可选：使用独立 backend 模型生成压缩摘要
-        // 开启后，主模型只传消息 ID / range ID，
+        // 开启后，主模型传 currentTask、retentionHint 和目标 ID，
         // DCP 会创建隔离 session 并调用该模型生成 summary
         // 要启用它，把 enabled 设为 true，并填写 providerID/modelID 格式的 model
         "backend": {
@@ -219,7 +219,9 @@ DCP 使用独立配置文件，按以下顺序查找：
 开启 backend 模式后：
 
 - `model` 必须是 `providerID/modelID` 形式的单个字符串
-- 主模型不再传 `summary`，工具 schema 只接受 `messageId` 或 `startId`/`endId`
+- 主模型不再传 `summary`，而是传 `currentTask`、`retentionHint` 和目标 ID
+- `currentTask` 表示压缩后主模型还要继续推进的当前任务，不是被压缩消息的摘要
+- `retentionHint` 表示压缩后需要尽量保留的事实、约束、决策或下一步
 - DCP 会创建一个隔离的 backend session，把选中的对话内容发送给配置的模型
 - 每次压缩都会额外增加一次模型调用
 - 如果 backend 生成失败，本次压缩直接失败，不会回退到主模型摘要

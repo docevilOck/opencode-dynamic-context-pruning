@@ -1,0 +1,19 @@
+@startuml
+title Backend intent contract
+
+actor "Main agent" as Main
+participant "compress tool\nrange / message" as Tool
+participant "backend.ts" as Backend
+participant "backend-prompts.ts" as Prompts
+participant "Compact session" as Compact
+participant "CompressionBlock" as Block
+
+Main -> Tool : currentTask\nretentionHint\ntarget IDs
+Tool -> Backend : selected messages + intent
+Backend -> Prompts : build constrained prompt
+Prompts -> Compact : source messages + intent
+Compact --> Backend : structured summary
+Backend --> Tool : validated result
+Tool -> Block : persist summary
+
+@enduml
