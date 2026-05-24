@@ -54,9 +54,14 @@
 ## 验证记录
 
 - 命令：`node --import tsx --test tests/compress-range.test.ts tests/compress-message.test.ts tests/compress-backend.test.ts tests/compress-backend-integration.test.ts`
-- 结果摘要：30 个测试通过，0 失败，0 skipped。
+- 结果摘要：32 个测试通过，0 失败，0 skipped。
 - 是否通过：通过
 - 未覆盖风险：未调用真实 backend 模型服务，backend 行为由测试桩覆盖。
+
+- 命令：`node --import tsx --test tests/compress-backend-integration.test.ts`
+- 结果摘要：新增 legacy `topic` 拒绝回归用例后，9 个测试通过，0 失败，0 skipped。
+- 是否通过：通过
+- 未覆盖风险：覆盖执行期入参校验，不覆盖真实宿主是否会提前剥离额外字段。
 
 - 命令：`npm run typecheck`
 - 结果摘要：`tsc --noEmit` 退出码 0。

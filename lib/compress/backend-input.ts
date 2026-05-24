@@ -15,9 +15,21 @@ function hasSummaryInput(content: unknown): boolean {
     )
 }
 
+function hasTopicInput(args: { content?: unknown }): boolean {
+    return (
+        "topic" in args ||
+        (Array.isArray(args.content) &&
+            args.content.some((item) => item && typeof item === "object" && "topic" in item))
+    )
+}
+
 export function assertBackendGeneratedInput(args: { content?: unknown }): void {
     if (hasSummaryInput(args.content)) {
         throw new Error("compress backend mode does not accept summary input")
+    }
+
+    if (hasTopicInput(args)) {
+        throw new Error("compress backend mode does not accept topic input")
     }
 }
 

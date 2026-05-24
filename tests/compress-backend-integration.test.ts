@@ -302,6 +302,43 @@ test("range mode rejects manual summaries when backend is enabled", async () => 
     )
 })
 
+test("range mode rejects legacy topic input when backend is enabled", async () => {
+    const sessionID = `ses_range_backend_legacy_topic_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const state = createSessionState()
+
+    const tool = createCompressRangeTool({
+        client: buildClient(rawMessages, '{"summary":"backend generated range summary"}'),
+        state,
+        logger: new Logger(false),
+        config: buildConfig("range"),
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        tool.execute(
+            {
+                topic: "legacy topic should be rejected",
+                currentTask: "Continue investigating the issue",
+                retentionHint: "Keep code paths, constraints, and unresolved questions",
+                content: [{ startId: "m0001", endId: "m0002" }],
+            } as any,
+            {
+                ask: async () => {},
+                metadata: () => {},
+                sessionID,
+                messageID: "msg-compress-backend-range-legacy-topic",
+            },
+        ),
+        /compress backend mode does not accept topic input/,
+    )
+})
+
 test("range mode rejects missing retention hint when backend is enabled", async () => {
     const sessionID = `ses_range_backend_missing_hint_${Date.now()}`
     const rawMessages = buildMessages(sessionID)
@@ -379,6 +416,68 @@ test("message mode rejects manual summaries when backend is enabled", async () =
             },
         ),
         /compress backend mode does not accept summary input/,
+    )
+})
+
+test("message mode rejects legacy topic input when backend is enabled", async () => {
+    const sessionID = `ses_message_backend_legacy_topic_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const state = createSessionState()
+
+    const tool = createCompressMessageTool({
+        client: buildClient(
+            rawMessages,
+            '{"summaries":[{"messageId":"m0001","topic":"Backend user","summary":"backend user summary"}]}',
+        ),
+        state,
+        logger: new Logger(false),
+        config: buildConfig("message"),
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        tool.execute(
+            {
+                topic: "legacy batch topic should be rejected",
+                currentTask: "Continue cleanup follow-up",
+                retentionHint: "Keep user intent and assistant findings",
+                content: [{ messageId: "m0001" }],
+            } as any,
+            {
+                ask: async () => {},
+                metadata: () => {},
+                sessionID,
+                messageID: "msg-compress-backend-message-legacy-batch-topic",
+            },
+        ),
+        /compress backend mode does not accept topic input/,
+    )
+
+    await assert.rejects(
+        tool.execute(
+            {
+                currentTask: "Continue cleanup follow-up",
+                retentionHint: "Keep user intent and assistant findings",
+                content: [
+                    {
+                        messageId: "m0001",
+                        topic: "legacy per-message topic should be rejected",
+                    },
+                ],
+            } as any,
+            {
+                ask: async () => {},
+                metadata: () => {},
+                sessionID,
+                messageID: "msg-compress-backend-message-legacy-entry-topic",
+            },
+        ),
+        /compress backend mode does not accept topic input/,
     )
 })
 
