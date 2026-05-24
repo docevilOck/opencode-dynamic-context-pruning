@@ -41,6 +41,11 @@ function assertBackendIntent(value: unknown, field: string): string {
     return value.trim()
 }
 
+function internalTopicFromBackendIntent(args: { currentTask: unknown; retentionHint: unknown }): string {
+    assertBackendIntent(args.retentionHint, "retentionHint")
+    return assertBackendIntent(args.currentTask, "currentTask")
+}
+
 export function normalizeRangeToolArgs(
     args: CompressRangeToolArgs | CompressRangeBackendToolArgs,
     backendEnabled: boolean,
@@ -50,10 +55,9 @@ export function normalizeRangeToolArgs(
     }
 
     const backendArgs = args as CompressRangeBackendToolArgs
-    assertBackendIntent(backendArgs.retentionHint, "retentionHint")
 
     return {
-        topic: assertBackendIntent(backendArgs.currentTask, "currentTask"),
+        topic: internalTopicFromBackendIntent(backendArgs),
         content: backendArgs.content.map((entry) => ({
             ...entry,
             summary: BACKEND_SUMMARY_PLACEHOLDER,
@@ -70,10 +74,9 @@ export function normalizeMessageToolArgs(
     }
 
     const backendArgs = args as CompressMessageBackendToolArgs
-    assertBackendIntent(backendArgs.retentionHint, "retentionHint")
 
     return {
-        topic: assertBackendIntent(backendArgs.currentTask, "currentTask"),
+        topic: internalTopicFromBackendIntent(backendArgs),
         content: backendArgs.content.map((entry) => ({
             ...entry,
             topic: BACKEND_TOPIC_PLACEHOLDER,
