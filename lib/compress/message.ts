@@ -103,6 +103,7 @@ export function createCompressMessageTool(ctx: ToolContext): ReturnType<typeof t
                 assertBackendGeneratedInput(args)
             }
 
+            const backendArgs = args as unknown as CompressMessageBackendToolArgs
             const input = normalizeMessageToolArgs(
                 args as CompressMessageToolArgs | CompressMessageBackendToolArgs,
                 backendEnabled,
@@ -136,7 +137,8 @@ export function createCompressMessageTool(ctx: ToolContext): ReturnType<typeof t
                     sessionId: toolCtx.sessionID,
                     backend: ctx.config.compress.backend,
                     mode: "message",
-                    topic: input.topic,
+                    currentTask: backendArgs.currentTask,
+                    retentionHint: backendArgs.retentionHint,
                     targets: requestedIds.map((messageId) => ({ messageId })),
                     selectedMessages: selectedMessagesForBackend(
                         requestedIds,

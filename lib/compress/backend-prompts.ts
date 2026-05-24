@@ -40,7 +40,7 @@ export function buildRangeBackendPrompt(request: BackendRangeRequest): string {
     return buildBackendPrompt(
         "You are generating a compact replacement summary for a selected conversation range.",
         "Topic",
-        request.topic,
+        request.currentTask,
         request.selectedMessages,
         RANGE_RESPONSE_SHAPE,
     )
@@ -50,7 +50,7 @@ export function buildMessageBackendPrompt(request: BackendMessageRequest): strin
     return buildBackendPrompt(
         "You are generating compact replacement summaries for selected conversation messages.",
         "Batch topic",
-        request.topic,
+        request.currentTask,
         request.selectedMessages,
         MESSAGE_RESPONSE_SHAPE,
         `Target message IDs: ${(request.targets ?? []).map((target) => target.messageId).join(", ")}`,

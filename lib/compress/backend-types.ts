@@ -18,7 +18,8 @@ export interface BackendBaseRequest {
         timeoutMs: number
         model?: string
     }
-    topic: string
+    currentTask: string
+    retentionHint: string
     selectedMessages: BackendSelectedMessage[]
 }
 

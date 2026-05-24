@@ -21,6 +21,14 @@ export function assertBackendGeneratedInput(args: { content?: unknown }): void {
     }
 }
 
+function assertBackendIntent(value: unknown, field: string): string {
+    if (typeof value !== "string" || value.trim().length === 0) {
+        throw new Error(`compress backend mode requires non-empty ${field}`)
+    }
+
+    return value.trim()
+}
+
 export function normalizeRangeToolArgs(
     args: CompressRangeToolArgs | CompressRangeBackendToolArgs,
     backendEnabled: boolean,
@@ -29,9 +37,12 @@ export function normalizeRangeToolArgs(
         return args as CompressRangeToolArgs
     }
 
+    const backendArgs = args as CompressRangeBackendToolArgs
+    assertBackendIntent(backendArgs.retentionHint, "retentionHint")
+
     return {
-        topic: args.topic,
-        content: args.content.map((entry) => ({
+        topic: assertBackendIntent(backendArgs.currentTask, "currentTask"),
+        content: backendArgs.content.map((entry) => ({
             ...entry,
             summary: BACKEND_SUMMARY_PLACEHOLDER,
         })),
@@ -46,9 +57,12 @@ export function normalizeMessageToolArgs(
         return args as CompressMessageToolArgs
     }
 
+    const backendArgs = args as CompressMessageBackendToolArgs
+    assertBackendIntent(backendArgs.retentionHint, "retentionHint")
+
     return {
-        topic: args.topic,
-        content: args.content.map((entry) => ({
+        topic: assertBackendIntent(backendArgs.currentTask, "currentTask"),
+        content: backendArgs.content.map((entry) => ({
             ...entry,
             topic: BACKEND_TOPIC_PLACEHOLDER,
             summary: BACKEND_SUMMARY_PLACEHOLDER,

@@ -128,7 +128,7 @@ export async function generateCompressionSummary(
     const created = await request.client.session.create({
         body: {
             parentID: request.sessionId,
-            title: `DCP compact: ${request.topic}`,
+            title: `DCP compact: ${request.currentTask}`,
         },
     })
     const backendSessionId = extractSessionId(created)

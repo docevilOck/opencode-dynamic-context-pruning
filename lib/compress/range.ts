@@ -94,6 +94,7 @@ export function createCompressRangeTool(ctx: ToolContext): ReturnType<typeof too
                 assertBackendGeneratedInput(args)
             }
 
+            const backendArgs = args as unknown as CompressRangeBackendToolArgs
             const input = normalizeRangeToolArgs(
                 args as CompressRangeToolArgs | CompressRangeBackendToolArgs,
                 backendEnabled,
@@ -130,7 +131,8 @@ export function createCompressRangeTool(ctx: ToolContext): ReturnType<typeof too
                         sessionId: toolCtx.sessionID,
                         backend: ctx.config.compress.backend,
                         mode: "range",
-                        topic: input.topic,
+                        currentTask: backendArgs.currentTask,
+                        retentionHint: backendArgs.retentionHint,
                         selectedMessages: selectedMessagesForBackend(
                             plan.selection.messageIds,
                             searchContext.rawMessagesById,

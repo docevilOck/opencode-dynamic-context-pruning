@@ -28,7 +28,8 @@ export interface CompressRangeBackendEntry {
 }
 
 export interface CompressRangeBackendToolArgs {
-    topic: string
+    currentTask: string
+    retentionHint: string
     content: CompressRangeBackendEntry[]
 }
 
@@ -48,7 +49,8 @@ export interface CompressMessageBackendEntry {
 }
 
 export interface CompressMessageBackendToolArgs {
-    topic: string
+    currentTask: string
+    retentionHint: string
     content: CompressMessageBackendEntry[]
 }
 
