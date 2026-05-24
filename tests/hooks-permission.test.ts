@@ -9,6 +9,7 @@ import {
     createTextCompleteHandler,
 } from "../lib/hooks"
 import { Logger } from "../lib/logger"
+import { injectCompressNudges } from "../lib/messages/inject/inject"
 import {
     createSessionState,
     ensureSessionInitialized,
@@ -47,6 +48,7 @@ function buildConfig(permission: "allow" | "ask" | "deny" = "allow"): PluginConf
             minContextLimit: 50000,
             nudgeFrequency: 5,
             iterationNudgeThreshold: 15,
+            postCompressionNudgeCooldownMessages: 0,
             nudgeForce: "soft",
             protectedTools: ["task"],
             protectTags: false,
@@ -73,6 +75,14 @@ function buildMessage(id: string, role: "user" | "assistant", text: string): Wit
             role,
             sessionID: "session-1",
             agent: "assistant",
+            model: {
+                providerID: "test",
+                modelID: "model",
+            },
+            tokens: {
+                input: 100,
+                output: 10,
+            },
             time: { created: 1 },
         } as WithParts["info"],
         parts: [
@@ -85,6 +95,23 @@ function buildMessage(id: string, role: "user" | "assistant", text: string): Wit
             },
         ],
     }
+}
+
+function textOf(message: WithParts): string {
+    return message.parts
+        .map((part) => (part.type === "text" ? part.text : ""))
+        .join("\n")
+}
+
+const runtimePrompts = {
+    system: "",
+    compressRange: "",
+    compressMessage: "",
+    contextLimitNudge: "CTX_NUDGE",
+    turnNudge: "TURN_NUDGE",
+    iterationNudge: "ITER_NUDGE",
+    manualExtension: "",
+    subagentExtension: "",
 }
 
 test("system prompt handler caches full model context for percentage thresholds", async () => {
@@ -175,6 +202,52 @@ test("chat message transform drops messages without info instead of crashing", a
 
     assert.equal(state.sessionId, null)
     assert.equal(output.messages.length, 0)
+})
+
+test("post-compression nudge cooldown suppresses automatic reminder injection", () => {
+    const state = createSessionState()
+    const logger = new Logger(false)
+    const config = buildConfig("allow")
+    config.compress.maxContextLimit = 0
+    config.compress.minContextLimit = 0
+    config.compress.postCompressionNudgeCooldownMessages = 5
+
+    const messages = [
+        buildMessage("user-1", "user", "start task with enough text to exceed the limit"),
+        buildMessage("assistant-1", "assistant", "working"),
+        buildMessage("assistant-2", "assistant", "still working"),
+    ]
+
+    state.nudges.lastCompressionMessageCount = 2
+    state.nudges.contextLimitAnchors.add("assistant-1")
+
+    injectCompressNudges(state, config, logger, messages, runtimePrompts)
+
+    assert.equal(textOf(messages[2]).includes("CTX_NUDGE"), false)
+    assert.equal(state.nudges.contextLimitAnchors.size, 0)
+})
+
+test("post-compression nudge cooldown allows reminders after enough new messages", () => {
+    const state = createSessionState()
+    const logger = new Logger(false)
+    const config = buildConfig("allow")
+    config.compress.maxContextLimit = 0
+    config.compress.minContextLimit = 0
+    config.compress.postCompressionNudgeCooldownMessages = 3
+
+    const messages = [
+        buildMessage("user-1", "user", "start task with enough text to exceed the limit"),
+        buildMessage("assistant-1", "assistant", "working"),
+        buildMessage("assistant-2", "assistant", "still working"),
+        buildMessage("assistant-3", "assistant", "new content after cooldown"),
+    ]
+
+    state.nudges.lastCompressionMessageCount = 1
+
+    injectCompressNudges(state, config, logger, messages, runtimePrompts)
+
+    assert.equal(textOf(messages[3]).includes("CTX_NUDGE"), true)
+    assert.equal(state.nudges.contextLimitAnchors.has("assistant-3"), true)
 })
 
 test("command execute exits after effective permission resolves to deny", async () => {

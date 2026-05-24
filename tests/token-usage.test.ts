@@ -39,6 +39,7 @@ function buildConfig(maxContextLimit: number, minContextLimit = 1): PluginConfig
             minContextLimit,
             nudgeFrequency: 5,
             iterationNudgeThreshold: 15,
+            postCompressionNudgeCooldownMessages: 0,
             nudgeForce: "soft",
             protectedTools: ["task"],
             protectTags: false,

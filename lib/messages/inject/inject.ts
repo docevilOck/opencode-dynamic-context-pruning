@@ -27,8 +27,27 @@ import {
     getIterationNudgeThreshold,
     getNudgeFrequency,
     getModelInfo,
+    isPostCompressionNudgeCoolingDown,
     isContextOverLimits,
 } from "./utils"
+
+/**
+ * @brief 清空所有自动压缩提醒锚点。
+ * @param state 当前会话状态。
+ * @return 若清空前存在任意锚点则返回 true。
+ */
+function clearAllNudgeAnchors(state: SessionState): boolean {
+    const hadAnchors =
+        state.nudges.contextLimitAnchors.size > 0 ||
+        state.nudges.turnNudgeAnchors.size > 0 ||
+        state.nudges.iterationNudgeAnchors.size > 0
+
+    state.nudges.contextLimitAnchors.clear()
+    state.nudges.turnNudgeAnchors.clear()
+    state.nudges.iterationNudgeAnchors.clear()
+
+    return hadAnchors
+}
 
 export const injectCompressNudges = (
     state: SessionState,
@@ -50,10 +69,16 @@ export const injectCompressNudges = (
     const lastAssistantMessage = messages.findLast((message) => message.info.role === "assistant")
 
     if (lastAssistantMessage && messageHasCompress(lastAssistantMessage)) {
-        state.nudges.contextLimitAnchors.clear()
-        state.nudges.turnNudgeAnchors.clear()
-        state.nudges.iterationNudgeAnchors.clear()
-        void saveSessionState(state, logger)
+        if (clearAllNudgeAnchors(state)) {
+            void saveSessionState(state, logger)
+        }
+        return
+    }
+
+    if (isPostCompressionNudgeCoolingDown(state, config, messages)) {
+        if (clearAllNudgeAnchors(state)) {
+            void saveSessionState(state, logger)
+        }
         return
     }
 

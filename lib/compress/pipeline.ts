@@ -84,6 +84,11 @@ export async function finalizeSession(
     batchTopic: string | undefined,
 ): Promise<void> {
     ctx.state.manualMode = ctx.state.manualMode ? "active" : false
+    if (entries.length > 0) {
+        ctx.state.nudges.lastCompressionMessageCount = rawMessages.filter(
+            (msg) => !isIgnoredUserMessage(msg),
+        ).length
+    }
     applyPendingCompressionDurations(ctx.state)
     await saveSessionState(ctx.state, ctx.logger)
 

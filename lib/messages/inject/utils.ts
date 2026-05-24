@@ -42,6 +42,36 @@ export function getIterationNudgeThreshold(config: PluginConfig): number {
     return Math.max(1, Math.floor(config.compress.iterationNudgeThreshold || 1))
 }
 
+/**
+ * @brief 获取成功压缩后的提醒冷却消息数。
+ * @param config 插件配置对象。
+ * @return 非负整数；0 表示不启用成功压缩后的提醒冷却。
+ */
+export function getPostCompressionNudgeCooldownMessages(config: PluginConfig): number {
+    return Math.max(0, Math.floor(config.compress.postCompressionNudgeCooldownMessages || 0))
+}
+
+/**
+ * @brief 判断当前会话是否仍处于成功压缩后的提醒冷却期。
+ * @param state 会话状态，包含上次成功压缩时的消息计数。
+ * @param config 插件配置对象。
+ * @param messages 当前消息列表。
+ * @return 若成功压缩后的新增消息数小于配置阈值，则返回 true。
+ */
+export function isPostCompressionNudgeCoolingDown(
+    state: SessionState,
+    config: PluginConfig,
+    messages: WithParts[],
+): boolean {
+    const cooldown = getPostCompressionNudgeCooldownMessages(config)
+    if (cooldown <= 0 || state.nudges.lastCompressionMessageCount === undefined) {
+        return false
+    }
+
+    const currentMessageCount = messages.filter((message) => !isIgnoredUserMessage(message)).length
+    return currentMessageCount - state.nudges.lastCompressionMessageCount < cooldown
+}
+
 export function findLastNonIgnoredMessage(messages: WithParts[]): LastNonIgnoredMessage | null {
     for (let i = messages.length - 1; i >= 0; i--) {
         const message = messages[i]

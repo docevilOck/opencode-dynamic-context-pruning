@@ -30,6 +30,7 @@ export interface CompressConfig {
     modelMinLimits?: Record<string, number | `${number}%`>
     nudgeFrequency: number
     iterationNudgeThreshold: number
+    postCompressionNudgeCooldownMessages: number
     nudgeForce: "strong" | "soft"
     protectedTools: string[]
     protectTags: boolean
@@ -132,6 +133,7 @@ export const VALID_CONFIG_KEYS = new Set([
     "compress.modelMinLimits",
     "compress.nudgeFrequency",
     "compress.iterationNudgeThreshold",
+    "compress.postCompressionNudgeCooldownMessages",
     "compress.nudgeForce",
     "compress.protectedTools",
     "compress.protectTags",
@@ -420,6 +422,17 @@ export function validateConfigTypes(config: Record<string, any>): ValidationErro
             }
 
             if (
+                compress.postCompressionNudgeCooldownMessages !== undefined &&
+                typeof compress.postCompressionNudgeCooldownMessages !== "number"
+            ) {
+                errors.push({
+                    key: "compress.postCompressionNudgeCooldownMessages",
+                    expected: "number",
+                    actual: typeof compress.postCompressionNudgeCooldownMessages,
+                })
+            }
+
+            if (
                 compress.nudgeForce !== undefined &&
                 compress.nudgeForce !== "strong" &&
                 compress.nudgeForce !== "soft"
@@ -526,6 +539,17 @@ export function validateConfigTypes(config: Record<string, any>): ValidationErro
                     key: "compress.iterationNudgeThreshold",
                     expected: "positive number (>= 1)",
                     actual: `${compress.iterationNudgeThreshold} (will be clamped to 1)`,
+                })
+            }
+
+            if (
+                typeof compress.postCompressionNudgeCooldownMessages === "number" &&
+                compress.postCompressionNudgeCooldownMessages < 0
+            ) {
+                errors.push({
+                    key: "compress.postCompressionNudgeCooldownMessages",
+                    expected: "non-negative number (>= 0)",
+                    actual: `${compress.postCompressionNudgeCooldownMessages} (will be clamped to 0)`,
                 })
             }
 
@@ -760,6 +784,7 @@ const defaultConfig: PluginConfig = {
         minContextLimit: 50000,
         nudgeFrequency: 5,
         iterationNudgeThreshold: 15,
+        postCompressionNudgeCooldownMessages: 0,
         nudgeForce: "soft",
         protectedTools: [...COMPRESS_DEFAULT_PROTECTED_TOOLS],
         protectTags: false,
@@ -931,6 +956,9 @@ function mergeCompress(
         modelMinLimits: override.modelMinLimits ?? base.modelMinLimits,
         nudgeFrequency: override.nudgeFrequency ?? base.nudgeFrequency,
         iterationNudgeThreshold: override.iterationNudgeThreshold ?? base.iterationNudgeThreshold,
+        postCompressionNudgeCooldownMessages:
+            override.postCompressionNudgeCooldownMessages ??
+            base.postCompressionNudgeCooldownMessages,
         nudgeForce: override.nudgeForce ?? base.nudgeForce,
         protectedTools: [...new Set([...base.protectedTools, ...(override.protectedTools ?? [])])],
         protectTags: override.protectTags ?? base.protectTags,

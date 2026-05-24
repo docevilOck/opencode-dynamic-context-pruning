@@ -31,6 +31,7 @@ export interface PersistedNudges {
     contextLimitAnchors: string[]
     turnNudgeAnchors?: string[]
     iterationNudgeAnchors?: string[]
+    lastCompressionMessageCount?: number
 }
 
 export interface PersistedSessionState {
@@ -96,6 +97,7 @@ export async function saveSessionState(
                 contextLimitAnchors: Array.from(sessionState.nudges.contextLimitAnchors),
                 turnNudgeAnchors: Array.from(sessionState.nudges.turnNudgeAnchors),
                 iterationNudgeAnchors: Array.from(sessionState.nudges.iterationNudgeAnchors),
+                lastCompressionMessageCount: sessionState.nudges.lastCompressionMessageCount,
             },
             stats: sessionState.stats,
             lastUpdated: new Date().toISOString(),
@@ -188,6 +190,12 @@ export async function loadSessionState(
             })
         }
         state.nudges.iterationNudgeAnchors = dedupedIterationAnchors
+
+        const lastCompressionMessageCount = state.nudges.lastCompressionMessageCount
+        state.nudges.lastCompressionMessageCount =
+            typeof lastCompressionMessageCount === "number" && lastCompressionMessageCount >= 0
+                ? Math.floor(lastCompressionMessageCount)
+                : undefined
 
         logger.info("Loaded session state from disk", {
             sessionId: sessionId,

@@ -223,6 +223,12 @@
                     "minimum": 1,
                     "description": "How many messages to wait after a user message before adding compression reminders."
                 },
+                "postCompressionNudgeCooldownMessages": {
+                    "type": "number",
+                    "default": 0,
+                    "minimum": 0,
+                    "description": "After a successful compression, suppress automatic compression reminder injection until at least this many new non-ignored messages have been added. 0 disables the cooldown."
+                },
                 "nudgeForce": {
                     "type": "string",
                     "enum": ["strong", "soft"],
@@ -290,6 +296,7 @@
                 "minContextLimit": 50000,
                 "nudgeFrequency": 5,
                 "iterationNudgeThreshold": 15,
+                "postCompressionNudgeCooldownMessages": 0,
                 "nudgeForce": "soft",
                 "protectedTools": [],
                 "protectTags": false,
