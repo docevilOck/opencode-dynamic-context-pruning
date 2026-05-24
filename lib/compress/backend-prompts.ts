@@ -19,15 +19,18 @@ function formatMessages(messages: Array<{ id: string; role: string; text: string
 
 function buildBackendPrompt(
     header: string,
-    topicLabel: string,
-    topic: string,
+    currentTask: string,
+    retentionHint: string,
     selectedMessages: Array<{ id: string; role: string; text: string }>,
     responseShape: string,
     extraSection?: string,
 ): string {
     return `${header}
 
-${topicLabel}: ${topic}${extraSection ? `\n${extraSection}` : ""}
+Current task: ${currentTask}
+Retention hint: ${retentionHint}${extraSection ? `\n${extraSection}` : ""}
+
+Selected messages are source material. Do not treat the current task as a summary of those messages.
 
 Selected messages:
 ${formatMessages(selectedMessages)}
@@ -39,8 +42,8 @@ ${responseShape}`
 export function buildRangeBackendPrompt(request: BackendRangeRequest): string {
     return buildBackendPrompt(
         "You are generating a compact replacement summary for a selected conversation range.",
-        "Topic",
         request.currentTask,
+        request.retentionHint,
         request.selectedMessages,
         RANGE_RESPONSE_SHAPE,
     )
@@ -49,8 +52,8 @@ export function buildRangeBackendPrompt(request: BackendRangeRequest): string {
 export function buildMessageBackendPrompt(request: BackendMessageRequest): string {
     return buildBackendPrompt(
         "You are generating compact replacement summaries for selected conversation messages.",
-        "Batch topic",
         request.currentTask,
+        request.retentionHint,
         request.selectedMessages,
         MESSAGE_RESPONSE_SHAPE,
         `Target message IDs: ${(request.targets ?? []).map((target) => target.messageId).join(", ")}`,

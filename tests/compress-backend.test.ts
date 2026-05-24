@@ -54,6 +54,15 @@ test("uses configured model in a created backend session", async () => {
     assert.equal(received.path.id, "ses_backend")
     assert.equal(received.body.model.providerID, "openai")
     assert.equal(received.body.model.modelID, "gpt-5-mini")
+    assert.match(received.body.parts[0].text, /Current task: Continue auth cleanup/)
+    assert.match(
+        received.body.parts[0].text,
+        /Retention hint: Keep decisions, constraints, and pending fixes/,
+    )
+    assert.match(
+        received.body.parts[0].text,
+        /Do not treat the current task as a summary of those messages\./,
+    )
     assert.deepEqual(result, { summary: "backend summary" })
 })
 
