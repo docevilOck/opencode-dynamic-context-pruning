@@ -219,7 +219,7 @@
                 },
                 "iterationNudgeThreshold": {
                     "type": "number",
-                    "default": 15,
+                    "default": 20,
                     "minimum": 1,
                     "description": "How many messages to wait after a user message before adding compression reminders."
                 },
@@ -295,7 +295,7 @@
                 "maxContextLimit": 100000,
                 "minContextLimit": 50000,
                 "nudgeFrequency": 5,
-                "iterationNudgeThreshold": 15,
+                "iterationNudgeThreshold": 20,
                 "postCompressionNudgeCooldownMessages": 5,
                 "nudgeForce": "soft",
                 "protectedTools": [],

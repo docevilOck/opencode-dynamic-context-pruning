@@ -156,7 +156,7 @@ Typical split:
         "nudgeFrequency": 5,
         // Start adding compression reminders after this many
         // messages have happened since the last user message
-        "iterationNudgeThreshold": 15,
+        "iterationNudgeThreshold": 20,
         // After a successful compression, suppress automatic reminders and
         // automatic compress execution until this many new non-ignored messages
         // have been added (0 = disabled)
