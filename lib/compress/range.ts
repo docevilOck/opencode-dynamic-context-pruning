@@ -32,9 +32,14 @@ import type { CompressRangeBackendToolArgs, CompressRangeToolArgs } from "./type
 function buildSchema(backendEnabled: boolean) {
     if (backendEnabled) {
         return {
-            topic: tool.schema
+            currentTask: tool.schema
                 .string()
-                .describe("Short label (3-5 words) for display - e.g., 'Auth System Exploration'"),
+                .describe(
+                    "Active task the main agent will continue after compression - not a summary of the selected messages",
+                ),
+            retentionHint: tool.schema
+                .string()
+                .describe("Information that must be preserved for continuing the active task"),
             content: tool.schema
                 .array(
                     tool.schema.object({

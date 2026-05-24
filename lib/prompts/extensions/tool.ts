@@ -23,7 +23,8 @@ THE FORMAT OF COMPRESS
 
 \`\`\`
 {
-  topic: string,           // Short label (3-5 words) - e.g., "Auth System Exploration"
+  currentTask: string,     // Active task the main agent will continue after compression
+  retentionHint: string,   // Information that must be preserved for that task
   content: [               // One or more ranges to compress
     {
       startId: string,     // Boundary ID at range start: mNNNN or bN
@@ -33,7 +34,7 @@ THE FORMAT OF COMPRESS
 }
 \`\`\`
 
-Backend compression mode is enabled. Do not provide summary. The plugin will generate summaries with the configured backend model.`
+Backend compression mode is enabled. Do not provide summary. Do not use currentTask to summarize the selected messages. The plugin will generate summaries with the configured backend model.`
 
 export const MESSAGE_FORMAT_EXTENSION = `
 THE FORMAT OF COMPRESS
@@ -56,7 +57,8 @@ THE FORMAT OF COMPRESS
 
 \`\`\`
 {
-  topic: string,           // Short label (3-5 words) for the overall batch
+  currentTask: string,     // Active task the main agent will continue after compression
+  retentionHint: string,   // Information that must be preserved for that task
   content: [               // One or more messages to compress independently
     {
       messageId: string    // Raw message ID only: mNNNN (ignore metadata attributes like priority)
@@ -65,4 +67,4 @@ THE FORMAT OF COMPRESS
 }
 \`\`\`
 
-Backend compression mode is enabled. Do not provide topic or summary per message. The plugin will generate summaries with the configured backend model.`
+Backend compression mode is enabled. Do not provide per-message topic or summary. The plugin will generate summaries with the configured backend model.`
