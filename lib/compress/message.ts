@@ -19,6 +19,8 @@ import {
 } from "./state"
 import type { CompressMessageBackendToolArgs, CompressMessageToolArgs } from "./types"
 
+type ToolArgsShape = Parameters<typeof tool>[0]["args"]
+
 function requireMatchingBackendSummaries(
     requestedIds: string[],
     summaries: Array<{ messageId: string; topic: string; summary: string }>,
@@ -43,7 +45,7 @@ function requireMatchingBackendSummaries(
     return received
 }
 
-function buildSchema(backendEnabled: boolean) {
+function buildSchema(backendEnabled: boolean): ToolArgsShape {
     if (backendEnabled) {
         return {
             currentTask: tool.schema
@@ -108,7 +110,7 @@ export function createCompressMessageTool(ctx: ToolContext): ReturnType<typeof t
 
             const backendArgs = args as unknown as CompressMessageBackendToolArgs
             const input = normalizeMessageToolArgs(
-                args as CompressMessageToolArgs | CompressMessageBackendToolArgs,
+                args as unknown as CompressMessageToolArgs | CompressMessageBackendToolArgs,
                 backendEnabled,
             )
             validateArgs(input)

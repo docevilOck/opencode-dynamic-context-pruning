@@ -29,7 +29,9 @@ import {
 } from "./state"
 import type { CompressRangeBackendToolArgs, CompressRangeToolArgs } from "./types"
 
-function buildSchema(backendEnabled: boolean) {
+type ToolArgsShape = Parameters<typeof tool>[0]["args"]
+
+function buildSchema(backendEnabled: boolean): ToolArgsShape {
     if (backendEnabled) {
         return {
             currentTask: tool.schema
@@ -101,7 +103,7 @@ export function createCompressRangeTool(ctx: ToolContext): ReturnType<typeof too
 
             const backendArgs = args as unknown as CompressRangeBackendToolArgs
             const input = normalizeRangeToolArgs(
-                args as CompressRangeToolArgs | CompressRangeBackendToolArgs,
+                args as unknown as CompressRangeToolArgs | CompressRangeBackendToolArgs,
                 backendEnabled,
             )
             validateArgs(input)
