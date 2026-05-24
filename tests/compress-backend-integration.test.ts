@@ -302,6 +302,41 @@ test("range mode rejects manual summaries when backend is enabled", async () => 
     )
 })
 
+test("range mode rejects missing retention hint when backend is enabled", async () => {
+    const sessionID = `ses_range_backend_missing_hint_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const state = createSessionState()
+
+    const tool = createCompressRangeTool({
+        client: buildClient(rawMessages, '{"summary":"backend generated range summary"}'),
+        state,
+        logger: new Logger(false),
+        config: buildConfig("range"),
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        tool.execute(
+            {
+                currentTask: "Continue investigating the issue",
+                content: [{ startId: "m0001", endId: "m0002" }],
+            } as any,
+            {
+                ask: async () => {},
+                metadata: () => {},
+                sessionID,
+                messageID: "msg-compress-backend-range-missing-hint",
+            },
+        ),
+        /compress backend mode requires non-empty retentionHint/,
+    )
+})
+
 test("message mode rejects manual summaries when backend is enabled", async () => {
     const sessionID = `ses_message_backend_manual_summary_${Date.now()}`
     const rawMessages = buildMessages(sessionID)
@@ -344,5 +379,43 @@ test("message mode rejects manual summaries when backend is enabled", async () =
             },
         ),
         /compress backend mode does not accept summary input/,
+    )
+})
+
+test("message mode rejects missing current task when backend is enabled", async () => {
+    const sessionID = `ses_message_backend_missing_task_${Date.now()}`
+    const rawMessages = buildMessages(sessionID)
+    const state = createSessionState()
+
+    const tool = createCompressMessageTool({
+        client: buildClient(
+            rawMessages,
+            '{"summaries":[{"messageId":"m0001","topic":"Backend user","summary":"backend user summary"}]}',
+        ),
+        state,
+        logger: new Logger(false),
+        config: buildConfig("message"),
+        prompts: {
+            reload() {},
+            getRuntimePrompts() {
+                return { compressRange: "", compressMessage: "" }
+            },
+        },
+    } as any)
+
+    await assert.rejects(
+        tool.execute(
+            {
+                retentionHint: "Keep user request and assistant findings",
+                content: [{ messageId: "m0001" }],
+            } as any,
+            {
+                ask: async () => {},
+                metadata: () => {},
+                sessionID,
+                messageID: "msg-compress-backend-message-missing-task",
+            },
+        ),
+        /compress backend mode requires non-empty currentTask/,
     )
 })
